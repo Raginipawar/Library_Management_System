@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# raw source assets (already processed into public/images/)
+/add_pixies
+*.jpe
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
