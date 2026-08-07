@@ -2,6 +2,7 @@
 
 > "Some pages don't just turn, they turn you."
 
+https://mindfulreading.vercel.app/ follow this link
 A full-featured, animated library booking website: browse a real database-backed
 catalog, sign in, reserve books and seats, manage a personal shelf, and RSVP to
 library events, styled like a bold editorial/poster illustration site rather than
