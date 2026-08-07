@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fdfaf3;
+  --foreground: #1c1712;
+  --font-serif: "Times New Roman", Times, "Liberation Serif", Georgia, serif;
+
+  /* Poster palette */
+  --color-burnt: #e8543a;
+  --color-maroon: #b8102a;
+  --color-forest: #1f4d3d;
+  --color-olive: #4a6b3f;
+  --color-lavender: #c9b8f0;
+  --color-mustard: #e8b923;
+  --color-pink: #e8478f;
+  --color-cobalt: #1b2f8f;
+  --color-cream: #fdfaf3;
+
+  --glow-yellow: #ffd23f;
+  --glow-orange: #ff8a3d;
+  --glow-coral: #ff5c5c;
+}
+
+:root[data-theme="dark"] {
+  --background: #14110d;
+  --foreground: #fdfaf3;
+  --color-cream: #201a14;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-burnt: var(--color-burnt);
+  --color-maroon: var(--color-maroon);
+  --color-forest: var(--color-forest);
+  --color-olive: var(--color-olive);
+  --color-lavender: var(--color-lavender);
+  --color-mustard: var(--color-mustard);
+  --color-pink: var(--color-pink);
+  --color-cobalt: var(--color-cobalt);
+  --color-cream: var(--color-cream);
+  --font-display: var(--font-serif);
+  --font-body: var(--font-serif);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-forest) transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-serif);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+h1, h2, h3, h4, .display {
+  font-family: var(--font-serif);
+}
+
+/* Glassy panel effect used for search bars, nav pills, floating labels */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="dark"] .glass-panel {
+  background: rgba(20, 17, 13, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glass-dark {
+  background: rgba(20, 17, 13, 0.45);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* Reusable light-beam gradient, mirrors the lamp hero */
+.light-beam {
+  background: radial-gradient(
+    ellipse 60% 80% at 50% 0%,
+    var(--glow-yellow) 0%,
+    var(--glow-orange) 45%,
+    var(--glow-coral) 75%,
+    transparent 100%
+  );
+}
+
+@keyframes lamp-sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+.animate-lamp-sway {
+  transform-origin: top center;
+  animation: lamp-sway 4.5s ease-in-out infinite;
+}
+
+@keyframes soft-bob {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+.animate-soft-bob {
+  animation: soft-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes walk-cycle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(-1.5deg); }
+  75% { transform: translateY(-3px) rotate(1.5deg); }
+}
+.animate-walk {
+  animation: walk-cycle 0.6s ease-in-out infinite;
+}
+
+::selection {
+  background: var(--color-mustard);
+  color: #1c1712;
+}
