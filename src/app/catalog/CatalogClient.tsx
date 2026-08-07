@@ -22,6 +22,8 @@ export default function CatalogClient() {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [books, setBooks] = useState<DbBook[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
 
   // Debounce the search box so we're not hitting the database on every keystroke.
   useEffect(() => {
@@ -34,6 +36,7 @@ export default function CatalogClient() {
     // Flip the loading flag as the filter-driven query kicks off.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
+    setLoadError(false);
 
     const controller = new AbortController();
     const supabase = createClient();
@@ -51,7 +54,10 @@ export default function CatalogClient() {
       // Stale/duplicate mounts (e.g. StrictMode, fast route transitions)
       // get their requests aborted above, so only the live one lands here.
       if (error) {
-        if (!error.message.startsWith("AbortError")) console.error(error);
+        if (error.message.startsWith("AbortError")) return;
+        console.error(error);
+        setLoadError(true);
+        setLoading(false);
         return;
       }
       setBooks(data ?? []);
@@ -61,7 +67,7 @@ export default function CatalogClient() {
     return () => {
       controller.abort();
     };
-  }, [debouncedQuery, genre, format, availableOnly]);
+  }, [debouncedQuery, genre, format, availableOnly, retryToken]);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-16">
@@ -150,7 +156,23 @@ export default function CatalogClient() {
             </div>
           </div>
 
-          {!loading && books.length === 0 ? (
+          {!loading && loadError ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20"
+            >
+              <p className="text-current/50 mb-4">
+                Couldn&apos;t load the catalog. Check your connection and try again.
+              </p>
+              <button
+                onClick={() => setRetryToken((t) => t + 1)}
+                className="text-xs px-4 py-2 rounded-full border border-current/20 hover:border-current/40 font-semibold"
+              >
+                Retry
+              </button>
+            </motion.div>
+          ) : !loading && books.length === 0 ? (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
