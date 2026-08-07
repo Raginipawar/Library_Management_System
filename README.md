@@ -1,4 +1,4 @@
-# Pageturn — Animated Library Booking Website
+# Animated Library Booking Website
 
 > "Some pages don't just turn, they turn you."
 
