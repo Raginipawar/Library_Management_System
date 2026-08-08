@@ -156,7 +156,7 @@ export default function CatalogClient() {
             </div>
           </div>
 
-          {!loading && loadError ? (
+          {loading ? null : loadError ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -172,7 +172,7 @@ export default function CatalogClient() {
                 Retry
               </button>
             </motion.div>
-          ) : !loading && books.length === 0 ? (
+          ) : books.length === 0 ? (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
