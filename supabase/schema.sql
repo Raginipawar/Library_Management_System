@@ -1,6 +1,13 @@
--- Pageturn library schema
+-- MindfulReading library schema
 -- Run this once in Supabase Dashboard -> SQL Editor -> New query -> Run.
 -- Safe to re-run: uses IF NOT EXISTS / DROP POLICY IF EXISTS guards.
+--
+-- Auth note: this project does NOT use Supabase Auth. Accounts are a
+-- simple app-managed "local_accounts" table (plain-text passwords, no
+-- email confirmation) -- appropriate for a zero-budget class demo, not
+-- for anything handling real user data. See local-auth-migration.sql
+-- for the delta if you're upgrading an existing database that still has
+-- the old Supabase-Auth-based schema.
 
 -- ============================================================
 -- BOOKS
@@ -34,44 +41,27 @@ create policy "Books are publicly readable"
 
 
 -- ============================================================
--- PROFILES (one row per signed-up user)
+-- LOCAL ACCOUNTS (app-managed, no Supabase Auth)
 -- ============================================================
-create table if not exists public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
-  email text,
-  full_name text,
+create table if not exists public.local_accounts (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  password text not null,
+  full_name text not null,
   created_at timestamptz not null default now()
 );
 
-alter table public.profiles enable row level security;
+alter table public.local_accounts enable row level security;
 
-drop policy if exists "Users can view own profile" on public.profiles;
-create policy "Users can view own profile"
-  on public.profiles for select
-  using (auth.uid() = id);
+drop policy if exists "Anyone can read accounts for login" on public.local_accounts;
+create policy "Anyone can read accounts for login"
+  on public.local_accounts for select
+  using (true);
 
-drop policy if exists "Users can update own profile" on public.profiles;
-create policy "Users can update own profile"
-  on public.profiles for update
-  using (auth.uid() = id);
-
--- Auto-create a profile row whenever someone signs up.
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer set search_path = public
-as $$
-begin
-  insert into public.profiles (id, email, full_name)
-  values (new.id, new.email, new.raw_user_meta_data ->> 'full_name');
-  return new;
-end;
-$$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
+drop policy if exists "Anyone can create an account" on public.local_accounts;
+create policy "Anyone can create an account"
+  on public.local_accounts for insert
+  with check (true);
 
 
 -- ============================================================
@@ -79,7 +69,7 @@ create trigger on_auth_user_created
 -- ============================================================
 create table if not exists public.cart_items (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
+  user_id uuid not null references public.local_accounts (id) on delete cascade,
   book_id text not null references public.books (id) on delete cascade,
   created_at timestamptz not null default now(),
   unique (user_id, book_id)
@@ -90,8 +80,8 @@ alter table public.cart_items enable row level security;
 drop policy if exists "Users manage own cart" on public.cart_items;
 create policy "Users manage own cart"
   on public.cart_items for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  using (true)
+  with check (true);
 
 
 -- ============================================================
@@ -99,7 +89,7 @@ create policy "Users manage own cart"
 -- ============================================================
 create table if not exists public.reservations (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
+  user_id uuid not null references public.local_accounts (id) on delete cascade,
   book_id text not null references public.books (id) on delete cascade,
   status text not null default 'active'
     check (status in ('active', 'returned', 'waitlist')),
@@ -113,5 +103,5 @@ alter table public.reservations enable row level security;
 drop policy if exists "Users manage own reservations" on public.reservations;
 create policy "Users manage own reservations"
   on public.reservations for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  using (true)
+  with check (true);

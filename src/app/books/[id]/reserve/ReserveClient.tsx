@@ -8,6 +8,7 @@ import { DbBook } from "@/lib/types";
 import ReserveButton from "@/components/ReserveButton";
 import Confetti from "@/components/Confetti";
 import { createClient } from "@/lib/supabase/client";
+import { getSession } from "@/lib/local-auth";
 
 const days = Array.from({ length: 7 }, (_, i) => {
   const d = new Date();
@@ -29,16 +30,15 @@ export default function ReserveClient({ book }: { book: DbBook }) {
     setSubmitting(true);
     setError(null);
 
-    const supabase = createClient();
-    const { data: userData } = await supabase.auth.getUser();
-
-    if (!userData.user) {
+    const session = getSession();
+    if (!session) {
       router.push(`/login?redirect=/books/${book.id}/reserve`);
       return;
     }
 
+    const supabase = createClient();
     const { error } = await supabase.from("reservations").insert({
-      user_id: userData.user.id,
+      user_id: session.id,
       book_id: book.id,
       status: book.availability === "available" ? "active" : "waitlist",
       pickup_slot: `${day.toLocaleDateString(undefined, {

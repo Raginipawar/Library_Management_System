@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import type { User } from "@supabase/supabase-js";
 import { useCart } from "@/lib/cart-context";
-import { createClient } from "@/lib/supabase/client";
+import { getSession, onAuthChange, signOut, LocalSession } from "@/lib/local-auth";
 
 const links = [
   { href: "/catalog", label: "Catalog" },
@@ -19,7 +18,7 @@ const links = [
 export default function Navbar() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<LocalSession | null>(null);
   const { cartIds } = useCart();
 
   useEffect(() => {
@@ -29,28 +28,21 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    // Session lives in a cookie, unreadable during SSR/first paint;
+    // hydrate it post-mount to avoid a server/client mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUser(getSession());
+    return onAuthChange(() => setUser(getSession()));
   }, []);
 
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    signOut();
+    setUser(null);
     router.push("/");
     router.refresh();
   };
 
-  const firstName =
-    (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ??
-    user?.email?.split("@")[0];
+  const firstName = user?.fullName.split(" ")[0] ?? user?.email.split("@")[0];
 
   return (
     <motion.header

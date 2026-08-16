@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/lib/cart-context";
 import { createClient } from "@/lib/supabase/client";
+import { getSession, onAuthChange } from "@/lib/local-auth";
 import { DbBook } from "@/lib/types";
 import ReserveButton from "@/components/ReserveButton";
 
@@ -14,8 +15,9 @@ export default function CartClient() {
   const [items, setItems] = useState<DbBook[]>([]);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setSignedIn(Boolean(data.user)));
+    const sync = () => setSignedIn(Boolean(getSession()));
+    sync();
+    return onAuthChange(sync);
   }, []);
 
   useEffect(() => {
@@ -89,9 +91,15 @@ export default function CartClient() {
                     </Link>
                     <p className="text-xs text-current/60">{book.author}</p>
                   </div>
+                  <Link
+                    href={`/books/${book.id}/reserve`}
+                    className="text-xs font-semibold text-white bg-[var(--color-burnt)] hover:bg-[var(--color-maroon)] px-3 py-1.5 rounded-full transition-colors shrink-0"
+                  >
+                    Order now
+                  </Link>
                   <button
                     onClick={() => removeFromCart(book.id)}
-                    className="text-xs font-semibold text-current/50 hover:text-[var(--color-maroon)] px-3 py-1.5 rounded-full transition-colors"
+                    className="text-xs font-semibold text-current/50 hover:text-[var(--color-maroon)] px-3 py-1.5 rounded-full transition-colors shrink-0"
                   >
                     Remove
                   </button>

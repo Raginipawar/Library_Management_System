@@ -2,26 +2,27 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 import { createClient } from "@/lib/supabase/server";
+import { getServerSession } from "@/lib/local-auth-server";
 import { DbReservation, DbCartItem } from "@/lib/types";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
+  const session = await getServerSession();
 
-  if (!userData.user) {
+  if (!session) {
     redirect("/login?redirect=/dashboard");
   }
 
+  const supabase = await createClient();
   const [{ data: reservations }, { data: cartRows }] = await Promise.all([
     supabase
       .from("reservations")
       .select("*, books(*)")
-      .eq("user_id", userData.user.id)
+      .eq("user_id", session.id)
       .order("created_at", { ascending: false }),
     supabase
       .from("cart_items")
       .select("*, books(*)")
-      .eq("user_id", userData.user.id)
+      .eq("user_id", session.id)
       .order("created_at", { ascending: false })
       .limit(4),
   ]);

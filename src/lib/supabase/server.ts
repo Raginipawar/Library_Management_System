@@ -18,8 +18,8 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // setAll called from a Server Component; safe to ignore
-            // because middleware refreshes the session on every request.
+            // setAll called from a Server Component; safe to ignore, this
+            // client no longer manages a Supabase Auth session/cookie.
           }
         },
       },

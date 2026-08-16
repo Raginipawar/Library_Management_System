@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getSession, onAuthChange } from "@/lib/local-auth";
 
 interface CartContextValue {
   cartIds: string[];
@@ -20,14 +21,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const supabase = createClient();
-
     const loadCart = async (uid: string | null) => {
       if (!uid) {
         setCartIds([]);
         setLoading(false);
         return;
       }
+      const supabase = createClient();
       const { data } = await supabase
         .from("cart_items")
         .select("book_id")
@@ -36,20 +36,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     };
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null);
-      loadCart(data.user?.id ?? null);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      const uid = session?.user?.id ?? null;
+    const sync = () => {
+      const uid = getSession()?.id ?? null;
       setUserId(uid);
       loadCart(uid);
-    });
+    };
 
-    return () => subscription.unsubscribe();
+    sync();
+    return onAuthChange(sync);
   }, []);
 
   const addToCart = (id: string) => {
