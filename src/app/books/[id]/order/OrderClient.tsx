@@ -18,6 +18,9 @@ const days = Array.from({ length: 7 }, (_, i) => {
 
 const slots = ["9:00 AM", "11:30 AM", "2:00 PM", "4:30 PM", "6:00 PM"];
 
+const PHONE_RULE = /^\d{10}$/;
+const PIN_RULE = /^\d{6}$/;
+
 export default function OrderClient({ book }: { book: DbBook }) {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -35,7 +38,12 @@ export default function OrderClient({ book }: { book: DbBook }) {
   const [error, setError] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
 
-  const addressValid = fullName && phone && address && city && pin;
+  const addressValid =
+    fullName.trim().length > 0 &&
+    PHONE_RULE.test(phone) &&
+    address.trim().length > 0 &&
+    city.trim().length > 0 &&
+    PIN_RULE.test(pin);
 
   const handleConfirm = async () => {
     setSubmitting(true);
@@ -197,14 +205,23 @@ export default function OrderClient({ book }: { book: DbBook }) {
                   placeholder="Full name"
                   className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
                 />
-                <input
-                  type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Phone number"
-                  className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
-                />
+                <div>
+                  <input
+                    type="tel"
+                    required
+                    inputMode="numeric"
+                    maxLength={10}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    placeholder="Phone number"
+                    className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
+                  />
+                  {phone.length > 0 && !PHONE_RULE.test(phone) && (
+                    <p className="text-xs text-[var(--color-maroon)] mt-1.5">
+                      Enter a 10-digit phone number.
+                    </p>
+                  )}
+                </div>
                 <input
                   type="text"
                   required
@@ -222,14 +239,21 @@ export default function OrderClient({ book }: { book: DbBook }) {
                     placeholder="City"
                     className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
                   />
-                  <input
-                    type="text"
-                    required
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    placeholder="PIN code"
-                    className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
-                  />
+                  <div>
+                    <input
+                      type="text"
+                      required
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="PIN code"
+                      className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
+                    />
+                    {pin.length > 0 && !PIN_RULE.test(pin) && (
+                      <p className="text-xs text-[var(--color-maroon)] mt-1.5">6-digit PIN code.</p>
+                    )}
+                  </div>
                 </div>
               </div>
               {error && <p className="text-sm text-[var(--color-maroon)] mb-4">{error}</p>}
