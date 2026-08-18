@@ -72,31 +72,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* NEW ARRIVALS */}
-      <SectionReveal className="max-w-6xl mx-auto px-6 py-20">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-[var(--color-maroon)] font-semibold mb-1">
-              Fresh off the shelf
-            </p>
-            <h2 className="font-display text-3xl font-bold">New Arrivals</h2>
-          </div>
-          <Link href="/catalog" className="text-sm font-semibold underline underline-offset-4">
-            See all →
-          </Link>
-        </div>
-        <StaggerGrid className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          {newArrivals.map((b) => (
-            <StaggerItem key={b.id}>
-              <BookCard book={b} />
-            </StaggerItem>
-          ))}
-        </StaggerGrid>
-      </SectionReveal>
-
-      {/* HALFTONE SHOWCASE — dark theme only */}
-      <HomeHalftoneShowcase />
-
       {/* CATEGORIES */}
       <SectionReveal className="py-20" bg="var(--color-forest)">
         <div className="max-w-6xl mx-auto px-6">
@@ -136,6 +111,31 @@ export default async function Home() {
             ))}
           </StaggerGrid>
         </div>
+      </SectionReveal>
+
+      {/* HALFTONE SHOWCASE — dark theme only */}
+      <HomeHalftoneShowcase />
+
+      {/* NEW ARRIVALS */}
+      <SectionReveal className="max-w-6xl mx-auto px-6 py-20">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-[var(--color-maroon)] font-semibold mb-1">
+              Fresh off the shelf
+            </p>
+            <h2 className="font-display text-3xl font-bold">New Arrivals</h2>
+          </div>
+          <Link href="/catalog" className="text-sm font-semibold underline underline-offset-4">
+            See all →
+          </Link>
+        </div>
+        <StaggerGrid className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          {newArrivals.map((b) => (
+            <StaggerItem key={b.id}>
+              <BookCard book={b} />
+            </StaggerItem>
+          ))}
+        </StaggerGrid>
       </SectionReveal>
 
       {/* HOW IT WORKS */}
