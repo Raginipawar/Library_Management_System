@@ -141,7 +141,7 @@ export default function CartClient() {
                             Remove
                           </button>
                           <Link
-                            href={`/books/${book.id}/reserve`}
+                            href={`/books/${book.id}/order`}
                             className="text-xs font-semibold text-white bg-[var(--color-burnt)] hover:bg-[var(--color-maroon)] px-4 py-1.5 rounded-full transition-colors"
                           >
                             Order now

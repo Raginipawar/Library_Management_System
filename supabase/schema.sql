@@ -94,6 +94,7 @@ create table if not exists public.reservations (
   status text not null default 'active'
     check (status in ('active', 'returned', 'waitlist')),
   pickup_slot text,
+  delivery_details text,
   due_date date,
   created_at timestamptz not null default now()
 );

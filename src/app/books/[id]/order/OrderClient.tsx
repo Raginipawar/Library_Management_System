@@ -18,14 +18,24 @@ const days = Array.from({ length: 7 }, (_, i) => {
 
 const slots = ["9:00 AM", "11:30 AM", "2:00 PM", "4:30 PM", "6:00 PM"];
 
-export default function ReserveClient({ book }: { book: DbBook }) {
+export default function OrderClient({ book }: { book: DbBook }) {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [day, setDay] = useState(days[0]);
   const [slot, setSlot] = useState<string | null>(null);
+
+  const session = getSession();
+  const [fullName, setFullName] = useState(session?.fullName ?? "");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [pin, setPin] = useState("");
+
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+
+  const addressValid = fullName && phone && address && city && pin;
 
   const handleConfirm = async () => {
     setSubmitting(true);
@@ -33,7 +43,7 @@ export default function ReserveClient({ book }: { book: DbBook }) {
 
     const session = getSession();
     if (!session) {
-      router.push(`/login?redirect=/books/${book.id}/reserve`);
+      router.push(`/login?redirect=/books/${book.id}/order`);
       return;
     }
 
@@ -49,6 +59,7 @@ export default function ReserveClient({ book }: { book: DbBook }) {
           month: "long",
           day: "numeric",
         })} at ${slot}`,
+        delivery_details: `${fullName}, ${address}, ${city} - ${pin}, ${phone}`,
       })
       .select()
       .single();
@@ -60,16 +71,16 @@ export default function ReserveClient({ book }: { book: DbBook }) {
     }
 
     setOrderId(data.id);
-    setStep(3);
+    setStep(4);
   };
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-16">
       <div className="glass-panel rounded-3xl p-8 relative overflow-hidden">
-        {step === 3 && <Confetti />}
+        {step === 4 && <Confetti />}
 
         <div className="flex items-center gap-2 mb-8">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div
               key={s}
               className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -88,11 +99,11 @@ export default function ReserveClient({ book }: { book: DbBook }) {
               exit={{ opacity: 0, x: -30 }}
             >
               <p className="text-xs uppercase tracking-widest text-[var(--color-maroon)] font-semibold mb-1">
-                Step 1 of 3
+                Step 1 of 4
               </p>
               <h1 className="font-display text-2xl font-bold mb-1">Pick a pickup day</h1>
               <p className="text-sm text-current/60 mb-6">
-                Reserving <span className="font-semibold">{book.title}</span>
+                Ordering <span className="font-semibold">{book.title}</span>
               </p>
               <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-8">
                 {days.map((d) => {
@@ -127,7 +138,7 @@ export default function ReserveClient({ book }: { book: DbBook }) {
               exit={{ opacity: 0, x: -30 }}
             >
               <p className="text-xs uppercase tracking-widest text-[var(--color-maroon)] font-semibold mb-1">
-                Step 2 of 3
+                Step 2 of 4
               </p>
               <h1 className="font-display text-2xl font-bold mb-1">Pick a time slot</h1>
               <p className="text-sm text-current/60 mb-6">
@@ -152,13 +163,12 @@ export default function ReserveClient({ book }: { book: DbBook }) {
                   </button>
                 ))}
               </div>
-              {error && <p className="text-sm text-[var(--color-maroon)] mb-4">{error}</p>}
               <div className="flex gap-3">
                 <ReserveButton variant="ghost" onClick={() => setStep(1)}>
                   Back
                 </ReserveButton>
-                <ReserveButton disabled={!slot || submitting} onClick={handleConfirm}>
-                  {submitting ? "Confirming…" : "Confirm reservation"}
+                <ReserveButton disabled={!slot} onClick={() => setStep(3)}>
+                  Next: your details
                 </ReserveButton>
               </div>
             </motion.div>
@@ -167,6 +177,76 @@ export default function ReserveClient({ book }: { book: DbBook }) {
           {step === 3 && (
             <motion.div
               key="step3"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+            >
+              <p className="text-xs uppercase tracking-widest text-[var(--color-maroon)] font-semibold mb-1">
+                Step 3 of 4
+              </p>
+              <h1 className="font-display text-2xl font-bold mb-1">Your details</h1>
+              <p className="text-sm text-current/60 mb-6">
+                So the front desk knows who&apos;s picking this up.
+              </p>
+              <div className="space-y-3 mb-8">
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="Full name"
+                  className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
+                />
+                <input
+                  type="tel"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Phone number"
+                  className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
+                />
+                <input
+                  type="text"
+                  required
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Address"
+                  className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    required
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="City"
+                    className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
+                  />
+                  <input
+                    type="text"
+                    required
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value)}
+                    placeholder="PIN code"
+                    className="w-full rounded-xl border border-current/15 bg-transparent px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--color-burnt)]"
+                  />
+                </div>
+              </div>
+              {error && <p className="text-sm text-[var(--color-maroon)] mb-4">{error}</p>}
+              <div className="flex gap-3">
+                <ReserveButton variant="ghost" onClick={() => setStep(2)}>
+                  Back
+                </ReserveButton>
+                <ReserveButton disabled={!addressValid || submitting} onClick={handleConfirm}>
+                  {submitting ? "Placing order…" : "Place order"}
+                </ReserveButton>
+              </div>
+            </motion.div>
+          )}
+
+          {step === 4 && (
+            <motion.div
+              key="step4"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-6"
@@ -184,7 +264,7 @@ export default function ReserveClient({ book }: { book: DbBook }) {
               </div>
               <h1 className="font-display text-2xl font-bold mb-1">Order placed!</h1>
               <p className="text-current/70 mb-4">
-                <span className="font-semibold">{book.title}</span> is reserved for{" "}
+                <span className="font-semibold">{book.title}</span> is ready for pickup{" "}
                 {day.toLocaleDateString(undefined, {
                   weekday: "long",
                   month: "long",

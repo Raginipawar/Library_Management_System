@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import ReserveClient from "./ReserveClient";
+import OrderClient from "./OrderClient";
 
-export default async function ReservePage({
+export default async function OrderPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -13,5 +13,5 @@ export default async function ReservePage({
   const { data: book } = await supabase.from("books").select("*").eq("id", id).single();
   if (!book) notFound();
 
-  return <ReserveClient book={book} />;
+  return <OrderClient book={book} />;
 }

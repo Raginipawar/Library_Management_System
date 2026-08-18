@@ -20,6 +20,7 @@ export interface DbReservation {
   book_id: string;
   status: "active" | "returned" | "waitlist";
   pickup_slot: string | null;
+  delivery_details: string | null;
   due_date: string | null;
   created_at: string;
   books: DbBook;

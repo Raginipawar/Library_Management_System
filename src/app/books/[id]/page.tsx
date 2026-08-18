@@ -115,9 +115,9 @@ export default async function BookDetailPage({
           </p>
 
           <div className="flex flex-wrap items-center gap-3">
-            <Link href={`/books/${book.id}/reserve`}>
+            <Link href={`/books/${book.id}/order`}>
               <ReserveButton>
-                {book.availability === "available" ? "Reserve this copy" : "Join the waitlist"}
+                {book.availability === "available" ? "Order this copy" : "Join the waitlist"}
               </ReserveButton>
             </Link>
             <AddToCartButton bookId={book.id} labeled />
