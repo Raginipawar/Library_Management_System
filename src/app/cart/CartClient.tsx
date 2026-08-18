@@ -9,6 +9,18 @@ import { getSession, onAuthChange } from "@/lib/local-auth";
 import { DbBook } from "@/lib/types";
 import ReserveButton from "@/components/ReserveButton";
 
+const availabilityStyles: Record<DbBook["availability"], string> = {
+  available: "bg-[var(--color-forest)] text-white",
+  waitlist: "bg-[var(--color-mustard)] text-[#1c1712]",
+  reserved: "bg-[var(--color-maroon)] text-white",
+};
+
+const availabilityLabel: Record<DbBook["availability"], string> = {
+  available: "In stock",
+  waitlist: "Waitlist",
+  reserved: "Reserved",
+};
+
 export default function CartClient() {
   const { cartIds, removeFromCart, clearCart, loading: cartLoading } = useCart();
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
@@ -53,9 +65,11 @@ export default function CartClient() {
     <div className="max-w-3xl mx-auto px-6 py-16">
       <div className="mb-10">
         <p className="text-xs uppercase tracking-widest text-[var(--color-maroon)] font-semibold mb-1">
-          Added to cart
+          My bag
         </p>
-        <h1 className="font-display text-4xl font-bold">Cart</h1>
+        <h1 className="font-display text-4xl font-bold">
+          Cart {items.length > 0 && <span className="text-current/40">({items.length})</span>}
+        </h1>
       </div>
 
       {!cartLoading && items.length === 0 ? (
@@ -69,7 +83,7 @@ export default function CartClient() {
         </div>
       ) : (
         <>
-          <div className="glass-panel rounded-2xl divide-y divide-current/10 mb-6">
+          <div className="space-y-4 mb-8">
             <AnimatePresence initial={false}>
               {items.map((book) => (
                 <motion.div
@@ -78,43 +92,83 @@ export default function CartClient() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="flex items-center gap-4 p-4 overflow-hidden"
+                  className="overflow-hidden"
                 >
-                  <Link
-                    href={`/books/${book.id}`}
-                    className="w-10 h-14 rounded shrink-0"
-                    style={{ backgroundColor: book.color }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <Link href={`/books/${book.id}`} className="font-semibold text-sm truncate block hover:underline">
-                      {book.title}
+                  <div className="glass-panel rounded-2xl p-4 flex gap-4 shadow-sm">
+                    <Link
+                      href={`/books/${book.id}`}
+                      className="relative w-16 h-24 rounded-lg shrink-0 overflow-hidden"
+                      style={{ backgroundColor: book.color }}
+                    >
+                      {book.cover_path && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={book.cover_path}
+                          alt={`${book.title} cover`}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      )}
                     </Link>
-                    <p className="text-xs text-current/60">{book.author}</p>
+
+                    <div className="flex-1 min-w-0 flex flex-col">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-[10px] uppercase tracking-widest text-current/50">
+                            {book.genre} · {book.format}
+                          </p>
+                          <Link
+                            href={`/books/${book.id}`}
+                            className="font-display font-semibold leading-tight hover:underline block truncate"
+                          >
+                            {book.title}
+                          </Link>
+                          <p className="text-xs text-current/60">{book.author}</p>
+                        </div>
+                        <span
+                          className={`shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full ${availabilityStyles[book.availability]}`}
+                        >
+                          {availabilityLabel[book.availability]}
+                        </span>
+                      </div>
+
+                      <div className="mt-auto pt-3 flex items-center justify-between gap-3">
+                        <span className="text-xs text-current/50">★ {book.rating}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => removeFromCart(book.id)}
+                            className="text-xs font-semibold text-current/50 hover:text-[var(--color-maroon)] px-3 py-1.5 rounded-full transition-colors"
+                          >
+                            Remove
+                          </button>
+                          <Link
+                            href={`/books/${book.id}/reserve`}
+                            className="text-xs font-semibold text-white bg-[var(--color-burnt)] hover:bg-[var(--color-maroon)] px-4 py-1.5 rounded-full transition-colors"
+                          >
+                            Order now
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <Link
-                    href={`/books/${book.id}/reserve`}
-                    className="text-xs font-semibold text-white bg-[var(--color-burnt)] hover:bg-[var(--color-maroon)] px-3 py-1.5 rounded-full transition-colors shrink-0"
-                  >
-                    Order now
-                  </Link>
-                  <button
-                    onClick={() => removeFromCart(book.id)}
-                    className="text-xs font-semibold text-current/50 hover:text-[var(--color-maroon)] px-3 py-1.5 rounded-full transition-colors shrink-0"
-                  >
-                    Remove
-                  </button>
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href="/catalog">
-              <ReserveButton variant="ghost">Keep browsing</ReserveButton>
-            </Link>
-            <ReserveButton variant="ghost" onClick={clearCart}>
-              Clear cart
-            </ReserveButton>
+          <div className="glass-panel rounded-2xl p-5 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-current/70">
+              <span className="font-semibold text-current">{items.length}</span>{" "}
+              {items.length === 1 ? "book" : "books"} ready to order, no payment needed, just pick a
+              time.
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/catalog">
+                <ReserveButton variant="ghost">Keep browsing</ReserveButton>
+              </Link>
+              <ReserveButton variant="ghost" onClick={clearCart}>
+                Clear cart
+              </ReserveButton>
+            </div>
           </div>
         </>
       )}

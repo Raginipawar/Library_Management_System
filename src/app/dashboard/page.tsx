@@ -43,24 +43,45 @@ export default async function DashboardPage() {
 
       {/* ACTIVE RESERVATIONS */}
       <section className="mb-16">
-        <h2 className="font-display text-2xl font-bold mb-6">Currently reserved</h2>
+        <h2 className="font-display text-2xl font-bold mb-6">My orders</h2>
         {active.length === 0 ? (
           <p className="text-sm text-current/60">
-            Nothing reserved yet. <Link href="/catalog" className="underline underline-offset-4">Browse the catalog</Link>.
+            Nothing ordered yet. <Link href="/catalog" className="underline underline-offset-4">Browse the catalog</Link>.
           </p>
         ) : (
           <div className="grid md:grid-cols-2 gap-5">
             {active.map((r) => (
               <div key={r.id} className="glass-panel rounded-2xl p-5 flex gap-4">
                 <div
-                  className="w-16 h-24 rounded-lg shrink-0"
+                  className="relative w-16 h-24 rounded-lg shrink-0 overflow-hidden"
                   style={{ backgroundColor: r.books.color }}
-                />
-                <div className="flex-1">
-                  <p className="font-display font-semibold">{r.books.title}</p>
+                >
+                  {r.books.cover_path && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={r.books.cover_path}
+                      alt={`${r.books.title} cover`}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-display font-semibold leading-tight">{r.books.title}</p>
+                    <span className="shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full bg-[var(--color-forest)] text-white">
+                      Reserved
+                    </span>
+                  </div>
                   <p className="text-sm text-current/60 mb-3">{r.books.author}</p>
                   <p className="text-xs font-semibold text-[var(--color-forest)]">
                     {r.pickup_slot ? `Pickup: ${r.pickup_slot}` : "Ready for pickup"}
+                  </p>
+                  <p className="text-[10px] text-current/40 mt-2">
+                    Order #{r.id.slice(0, 8).toUpperCase()} · Placed{" "}
+                    {new Date(r.created_at).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </p>
                 </div>
               </div>
@@ -80,6 +101,9 @@ export default async function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate">{r.books.title}</p>
                   <p className="text-xs text-current/60">{r.books.author}</p>
+                  <p className="text-[10px] text-current/40">
+                    Order #{r.id.slice(0, 8).toUpperCase()}
+                  </p>
                 </div>
                 <span className="text-xs text-current/50 px-3 py-1 rounded-full bg-[var(--color-mustard)]/30">
                   Waitlisted
@@ -106,10 +130,26 @@ export default async function DashboardPage() {
               <StaggerItem key={item.id}>
                 <Link href={`/books/${item.books.id}`} className="block">
                   <div
-                    className="rounded-xl h-40 p-4 flex flex-col justify-between shadow-md hover:-translate-y-1 transition-transform"
+                    className="relative overflow-hidden rounded-xl h-40 p-4 flex flex-col justify-between shadow-md hover:-translate-y-1 transition-transform"
                     style={{ backgroundColor: item.books.color }}
                   >
-                    <div>
+                    {item.books.cover_path && (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.books.cover_path}
+                          alt={`${item.books.title} cover`}
+                          className="absolute inset-0 w-full h-full object-cover opacity-55"
+                        />
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background: `linear-gradient(to top, ${item.books.color} 15%, transparent 65%)`,
+                          }}
+                        />
+                      </>
+                    )}
+                    <div className="relative">
                       <p className="text-white font-display text-sm">{item.books.title}</p>
                       <p className="text-white/70 text-xs">{item.books.author}</p>
                     </div>
@@ -123,9 +163,9 @@ export default async function DashboardPage() {
 
       {/* HISTORY */}
       <section>
-        <h2 className="font-display text-2xl font-bold mb-6">Reservation history</h2>
+        <h2 className="font-display text-2xl font-bold mb-6">Order history</h2>
         {returned.length === 0 ? (
-          <p className="text-sm text-current/60">No returns yet.</p>
+          <p className="text-sm text-current/60">No past orders yet.</p>
         ) : (
           <div className="glass-panel rounded-2xl divide-y divide-current/10">
             {returned.map((r) => (
@@ -134,6 +174,9 @@ export default async function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate">{r.books.title}</p>
                   <p className="text-xs text-current/60">{r.books.author}</p>
+                  <p className="text-[10px] text-current/40">
+                    Order #{r.id.slice(0, 8).toUpperCase()}
+                  </p>
                 </div>
                 <span className="text-xs text-current/50 px-3 py-1 rounded-full bg-current/5">
                   Returned

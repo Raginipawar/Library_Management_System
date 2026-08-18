@@ -25,6 +25,7 @@ export default function ReserveClient({ book }: { book: DbBook }) {
   const [slot, setSlot] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   const handleConfirm = async () => {
     setSubmitting(true);
@@ -37,16 +38,20 @@ export default function ReserveClient({ book }: { book: DbBook }) {
     }
 
     const supabase = createClient();
-    const { error } = await supabase.from("reservations").insert({
-      user_id: session.id,
-      book_id: book.id,
-      status: book.availability === "available" ? "active" : "waitlist",
-      pickup_slot: `${day.toLocaleDateString(undefined, {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-      })} at ${slot}`,
-    });
+    const { data, error } = await supabase
+      .from("reservations")
+      .insert({
+        user_id: session.id,
+        book_id: book.id,
+        status: book.availability === "available" ? "active" : "waitlist",
+        pickup_slot: `${day.toLocaleDateString(undefined, {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })} at ${slot}`,
+      })
+      .select()
+      .single();
 
     setSubmitting(false);
     if (error) {
@@ -54,6 +59,7 @@ export default function ReserveClient({ book }: { book: DbBook }) {
       return;
     }
 
+    setOrderId(data.id);
     setStep(3);
   };
 
@@ -165,11 +171,20 @@ export default function ReserveClient({ book }: { book: DbBook }) {
               animate={{ opacity: 1, scale: 1 }}
               className="text-center py-6"
             >
-              <h1 className="font-display text-2xl font-bold mb-2">You&apos;re all set!</h1>
-              <p className="text-current/70 mb-1">
-                <span className="font-semibold">{book.title}</span> is reserved for
-              </p>
-              <p className="text-current/70 mb-6">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[var(--color-forest)] text-white grid place-items-center">
+                <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
+                  <path
+                    d="M4 10l4 4 8-9"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <h1 className="font-display text-2xl font-bold mb-1">Order placed!</h1>
+              <p className="text-current/70 mb-4">
+                <span className="font-semibold">{book.title}</span> is reserved for{" "}
                 {day.toLocaleDateString(undefined, {
                   weekday: "long",
                   month: "long",
@@ -177,9 +192,16 @@ export default function ReserveClient({ book }: { book: DbBook }) {
                 })}{" "}
                 at {slot}
               </p>
-              <Link href="/dashboard">
-                <ReserveButton>Go to My Shelf</ReserveButton>
-              </Link>
+              {orderId && (
+                <p className="inline-block text-xs font-semibold text-current/50 bg-current/5 px-4 py-2 rounded-full mb-6">
+                  Order ID: #{orderId.slice(0, 8).toUpperCase()}
+                </p>
+              )}
+              <div>
+                <Link href="/dashboard">
+                  <ReserveButton>View my orders</ReserveButton>
+                </Link>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
