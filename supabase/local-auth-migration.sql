@@ -42,6 +42,10 @@ create policy "Anyone can create an account"
 -- ============================================================
 -- CART ITEMS -- repoint at local_accounts, open up RLS
 -- ============================================================
+-- Wipe pre-migration rows: they belong to old Supabase Auth accounts
+-- that no longer exist/can't log in, and would fail the new foreign key.
+delete from public.cart_items;
+
 alter table public.cart_items
   drop constraint if exists cart_items_user_id_fkey;
 
@@ -59,6 +63,8 @@ create policy "Users manage own cart"
 -- ============================================================
 -- RESERVATIONS -- repoint at local_accounts, open up RLS
 -- ============================================================
+delete from public.reservations;
+
 alter table public.reservations
   drop constraint if exists reservations_user_id_fkey;
 
